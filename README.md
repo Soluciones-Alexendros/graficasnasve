@@ -26,7 +26,7 @@
 | Estilos   | [Tailwind CSS v4](https://tailwindcss.com/) + Design System NASVE                       |
 | Backend   | [Supabase](https://supabase.com/) (PostgreSQL + RLS + Storage)                          |
 | Email     | [Resend](https://resend.com/)                                                           |
-| Hosting   | [Vercel](https://vercel.com/) (cdg1+fra1) + [Cloudflare](https://www.cloudflare.com/)   |
+| Hosting   | [Vercel](https://vercel.com/) (`fra1`) + [Cloudflare](https://www.cloudflare.com/)      |
 | Tests     | [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/)                   |
 
 ## Desarrollo
@@ -61,7 +61,8 @@ GitHub Actions (workflow **CI/CD**) ejecuta en cada push/PR los jobs canónicos:
 2. **test** — Vitest
 3. **build** — `pnpm build` (artefacto `.next`)
 4. **smoke** — Playwright/Chromium
-5. **Deploy** — `deploy.yml` a Vercel solo si CI/CD pasa en `main`
+5. **Production** — integración Git de Vercel al mergear en `main`
+6. **smoke-prod** — `deploy.yml` comprueba que el alias de Production es el SHA de Git (`source=git`) y que esa URL responde 200. No despliega.
 
 ## Contratos
 

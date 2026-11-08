@@ -59,10 +59,12 @@ Copiar `.env.example` → `.env.local` y rellenar (nunca subir `.env.local`):
 
 ## 5. Vercel
 
-1. Importar el repo. Región **`cdg1`** (París) — ver `vercel.json`.
+1. Importar el repo. Región **`fra1`** (Fráncfort) — ver `vercel.json`.
 2. Definir todas las variables de §2 en **Project → Settings → Environment Variables**
    (producción y _preview_).
-3. Build: `pnpm build` (Turbopack por defecto en Next 16). Deploy automático por rama.
+3. Build: `pnpm build` (Turbopack por defecto en Next 16).
+4. **Única vía de Production:** la integración Git de Vercel (push/merge a `main`).
+   No hay segundo deploy por CLI.
 
 ## 6. Cloudflare (DNS)
 
@@ -72,25 +74,28 @@ Copiar `.env.example` → `.env.local` y rellenar (nunca subir `.env.local`):
 
 ## 7. CI/CD
 
-`.github/workflows/ci.yml` ejecuta en cada PR/push:
+`.github/workflows/ci.yml` (nombre **CI/CD**) ejecuta en cada PR/push:
 
-- **calidad**: `pnpm typecheck` + `pnpm lint` + `pnpm test` (Vitest).
-- **e2e**: `pnpm build` + `pnpm test:e2e` (Playwright/Chromium), sin secretos.
+- **quality** — typecheck + lint + format + meta-secciones
+- **test** — Vitest
+- **build** — `pnpm build`
+- **smoke** — Playwright/Chromium, sin secretos
 
-**Autodeploy encadenado a CI** (`.github/workflows/deploy.yml`): tras terminar el
-workflow `CI` con éxito sobre `main`, un job `workflow_run` despliega a producción con
-Vercel CLI. Si CI falla, **no** despliega. Requiere tres secretos en
-**Settings → Secrets and variables → Actions**:
+**Production:** la publica solo la **integración Git de Vercel** al mergear en `main`
+(tras CI verde, según la protección de rama). Un merge → un deployment de Production.
 
-| Secreto             | Origen                                           |
-| ------------------- | ------------------------------------------------ |
-| `VERCEL_TOKEN`      | Vercel → Account → Tokens                        |
-| `VERCEL_ORG_ID`     | `.vercel/project.json` (`orgId`) o `vercel link` |
-| `VERCEL_PROJECT_ID` | `.vercel/project.json` (`projectId`)             |
+**Smoke post-deploy** (`.github/workflows/deploy.yml`): tras CI/CD en verde sobre `main`,
+el job `smoke-prod` separa las capas. El check de CI y el artefacto `.next` no promocionan.
+La promoción es solo Git. El job lee el alias y exige que ese deployment sea `source=git`,
+esté `READY` y su `meta.githubCommitSha` sea el `head_sha` del `workflow_run`. Luego pide
+HTTP 200 a la URL de ese deployment y a
+`https://ecommerce-graficasnasve.vercel.app`. Usa `VERCEL_TOKEN`, `VERCEL_ORG_ID` y
+`VERCEL_PROJECT_ID` solo para esa lectura. Si faltan, el job sale 1. No llama a
+`vercel deploy` y no usa `exit 0`.
 
-> Mientras no estén definidos, el job de deploy falla con un mensaje claro y el resto del
-> CI sigue verde. La integración nativa Git de Vercel y este workflow son **alternativas**:
-> usar una u otra para no desplegar dos veces.
+> Antes coexistían dos deploys (Git + CLI). El CLI se retiró a propósito para dejar una
+> sola vía. Rollback, mientras el alias no cambie: Instant Rollback de Vercel al deployment
+> `dpl_7FHxNXCVC82spic8HWEsqDHGsVGW` (SHA `dffb7faefe3b935fe86dbded035782509c4e8238`).
 
 ## 8. Pagos (futuro — Fase 5)
 
