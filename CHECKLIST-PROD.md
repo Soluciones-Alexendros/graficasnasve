@@ -132,7 +132,7 @@ URL prod: `https://ecommerce-graficasnasve.vercel.app` → HTTP 200 (verificado 
 - [ ] Lighthouse en verde (SEO/A11y/Perf ≥ 90)
 - [ ] UAT con el cliente final
 - [ ] Anuncio (redes / reseñas)
-- [ ] Alejandro: habilitar merge commits (hoy solo squash + linear history)
+- [x] Método de merge: squash (`gh pr merge --auto --squash`). No habilitar merge commits.
 - [ ] Alejandro: required checks `secrets` + `sca`
 - [ ] Alejandro: borrar `plantilla-base` y `fix/deploy-vercel-dlx`
 - [ ] Alejandro: aportación tarifa NASVE (ciclo posterior)
