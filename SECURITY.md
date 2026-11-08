@@ -29,6 +29,7 @@ Incluye: versión o commit, ruta o comando reproducido, y un caso **mínimo sint
 - Webhook `/api/webhooks/stripe` es **stub 501**; no hay pagos en producción todavía.
 - Secretos en `.env.local` (Supabase, Resend, Stripe, `APP_URL`). El fichero no se versiona; usa `.env.example`.
 - Renovate (`.github/renovate.json`) cubre presets de flota (npm + acciones). No hay Dependabot de version-updates.
+- CI (`ci.yml`): jobs **`secrets`** (gitleaks v8.30.1 binario, sin `gitleaks-action`) y **`sca`** (`pnpm audit --prod --audit-level=high` + OSV-Scanner high sobre el lockfile). Sin `continue-on-error`.
 
 ## Alcance
 

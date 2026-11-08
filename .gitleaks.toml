@@ -1,0 +1,12 @@
+# Allowlist de falsos positivos. No purga historial.
+# Patrón org: extend default + paths de plantillas de entorno.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Plantillas de entorno: placeholders JWT/API (archivo retirado; gitleaks escanea historial)"
+paths = [
+  '''(?:^|/)\.env\.local\.example$''',
+  '''(?:^|/)\.env\.example$''',
+]

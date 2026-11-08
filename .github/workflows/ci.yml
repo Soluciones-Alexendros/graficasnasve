@@ -176,3 +176,103 @@ jobs:
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+  # Binario gitleaks (no gitleaks-action@v2: exige licencia).
+  # Patrón: Alexendros/alexendrosdev .github/workflows/security.yml
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: gitleaks
+        run: |
+          set -euo pipefail
+          curl -sSfL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --redact --verbose
+
+  # Auditoría nativa (pnpm) + OSV-Scanner sobre el lockfile. Sin continue-on-error.
+  sca:
+    name: sca
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Detect lockfile
+        id: lockfile
+        run: |
+          set -euo pipefail
+          if [[ -f pnpm-lock.yaml ]]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+            echo "lockfile=pnpm-lock.yaml" >> "$GITHUB_OUTPUT"
+          elif [[ -f package-lock.json ]]; then
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "lockfile=package-lock.json" >> "$GITHUB_OUTPUT"
+          elif [[ -f Cargo.lock ]]; then
+            echo "manager=cargo" >> "$GITHUB_OUTPUT"
+            echo "lockfile=Cargo.lock" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::No supported lockfile found (pnpm-lock.yaml, package-lock.json, Cargo.lock)"
+            exit 1
+          fi
+
+      - name: Setup PNPM
+        if: steps.lockfile.outputs.manager == 'pnpm'
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 11.5.2
+
+      - name: Setup Node.js
+        if: steps.lockfile.outputs.manager == 'pnpm' || steps.lockfile.outputs.manager == 'npm'
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: ${{ steps.lockfile.outputs.manager }}
+
+      - name: Install dependencies (pnpm)
+        if: steps.lockfile.outputs.manager == 'pnpm'
+        run: pnpm install --frozen-lockfile
+
+      - name: Native audit (pnpm)
+        if: steps.lockfile.outputs.manager == 'pnpm'
+        run: pnpm audit --prod --audit-level=high
+
+      - name: Native audit (npm)
+        if: steps.lockfile.outputs.manager == 'npm'
+        run: |
+          set -euo pipefail
+          npm ci
+          npm audit --omit=dev --audit-level=high
+
+      - name: Native audit (cargo)
+        if: steps.lockfile.outputs.manager == 'cargo'
+        run: |
+          set -euo pipefail
+          if command -v cargo-deny >/dev/null 2>&1; then
+            cargo deny check advisories
+          else
+            cargo install cargo-audit --locked
+            cargo audit
+          fi
+
+      - name: OSV-Scanner (high/critical only)
+        uses: google/osv-scanner-action/osv-scanner-action@19ec1116569a47416e11a45848722b1af31a857b # v1.9.0
+        with:
+          scan-args: |-
+            --lockfile=${{ steps.lockfile.outputs.lockfile }}
+            --severity=high

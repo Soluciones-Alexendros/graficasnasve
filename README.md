@@ -61,7 +61,9 @@ GitHub Actions (workflow **CI/CD**) ejecuta en cada push/PR los jobs canónicos:
 2. **test** — Vitest
 3. **build** — `pnpm build` (artefacto `.next`)
 4. **smoke** — Playwright/Chromium
-5. **Deploy** — `deploy.yml` a Vercel solo si CI/CD pasa en `main`
+5. **secrets** — gitleaks (binario v8.30.1)
+6. **sca** — `pnpm audit --prod --audit-level=high` + OSV-Scanner (high)
+7. **Production** — integración Git de Vercel al mergear en `main` (ver `DEPLOYMENT.md`)
 
 ## Contratos
 
