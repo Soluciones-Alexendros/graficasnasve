@@ -126,7 +126,8 @@ jobs:
   smoke:
     name: smoke
     needs: [build]
-    runs-on: ubuntu-latest
+    # ubuntu-latest es 26.04 y Playwright 1.60 no publica Chromium para esa imagen.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
