@@ -25,7 +25,7 @@ El `name:` del workflow de CI debe seguir siendo **CI/CD**. Si lo cambias, el `w
 | `smoke-prod` rojo     | SHA, `source` y HTTP del deployment del alias. Cuota `api-deployments-free-per-day` o `build-rate-limit`: parar, sin reintento ni cambio de plan |
 | Production sin deploy | ¿Integración Git activa en el proyecto Vercel? ¿rama `main`?                                                                                     |
 
-Runners del CI: `ubuntu-latest` (GitHub-hosted). `deploy.yml` permanece aparte (solo lectura y smoke).
+Runners de `quality`, `test` y `build`: `ubuntu-latest`. El job `smoke` usa `ubuntu-24.04` porque Playwright 1.60 no instala Chromium en `ubuntu-latest` (26.04). `deploy.yml` permanece aparte (solo lectura y smoke del SHA).
 
 > Nota (2026-10-25): se retiró el deploy por Vercel CLI. El run [40192958620](https://github.com/Soluciones-Alexendros/graficasnasve/actions/runs/40192958620) falló en la promoción CLI por cuota, con el artefacto ya construido.
 > Rollback de emergencia, mientras el alias no cambie: Instant Rollback al deployment `dpl_7FHxNXCVC82spic8HWEsqDHGsVGW` (SHA `dffb7faefe3b935fe86dbded035782509c4e8238`).
