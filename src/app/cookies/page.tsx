@@ -98,7 +98,8 @@ export default function PaginaCookies() {
               </div>
               <p className="font-sans text-sm text-gris leading-relaxed mb-4">
                 Utilizamos Google Analytics 4 para comprender cómo los visitantes interactúan con el sitio web. La
-                información se recopila de forma anónima y agregada. Solo se activan si das tu consentimiento.
+                información se recopila de forma anónima y agregada. El script de Google no se carga hasta que aceptas
+                en el banner (Consent Mode v2); si rechazas, no hay peticiones a Google Analytics.
               </p>
             </div>
 

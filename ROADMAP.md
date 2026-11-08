@@ -110,7 +110,7 @@ flowchart LR
 ## Fase 6 — Optimización + Go-live ⏳
 
 - [ ] Core Web Vitals (LCP < 2,5 s · CLS < 0,1 · INP < 200 ms) + Lighthouse CI
-- [ ] GA4 + Consent Mode v2 (RGPD) y banner de cookies
+- [x] GA4 + Consent Mode v2 (RGPD) y banner de cookies _(tag solo tras aceptar; ID en Vercel)_
 - [ ] Search Console: verificar + enviar `sitemap.xml`
 - [ ] Reseñas Google (QR en taller) · anuncio en redes
 - [ ] UAT con Alicia (cliente final)

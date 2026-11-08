@@ -3,6 +3,8 @@
  * © 2026 Soluciones Alexendros S.L.U. — Todos los derechos reservados.
  */
 import type { Metadata } from 'next'
+import { BannerCookies } from '@/components/marketing/BannerCookies'
+import { GoogleAnalytics } from '@/components/marketing/GoogleAnalytics'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -56,7 +58,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className="h-full">
-      <body className="min-h-full flex flex-col bg-papel text-tinta font-sans antialiased">{children}</body>
+      <body className="min-h-full flex flex-col bg-papel text-tinta font-sans antialiased">
+        {children}
+        <BannerCookies />
+        <GoogleAnalytics />
+      </body>
     </html>
   )
 }

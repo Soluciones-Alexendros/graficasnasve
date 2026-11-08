@@ -26,8 +26,10 @@ Copiar `.env.example` → `.env.local` y rellenar (nunca subir `.env.local`):
 | `RESEND_FROM`                   | servidor     | Remitente verificado (p. ej. `no-reply@graficasnasve.art`) |
 | `RESEND_PRESUPUESTO_TO`         | servidor     | Destinatario interno (p. ej. `alicia@nasve.com`)           |
 | `NEXT_PUBLIC_APP_URL`           | público      | `https://graficasnasve.art`                                |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | público      | ID GA4 (`G-…`). Vacío = sin tag. Solo tras consentimiento  |
 
 > Las claves de pasarela de pago (Stripe/Redsys/…) se añadirán en la **Fase 5** (ver §8).
+> El Measurement ID de GA4 lo configura Alejandro en Vercel (preview + production); no va en el repo.
 
 ## 3. Supabase
 

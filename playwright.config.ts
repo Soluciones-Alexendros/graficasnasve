@@ -22,9 +22,16 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     // En CI el build se hace en un paso previo; en local se construye al vuelo.
-    command: process.env.CI ? 'pnpm start' : 'pnpm build && pnpm start',
+    // ID de prueba para e2e de consentimiento (se inlinea en el build; no es prod).
+    // En local usamos el binario de Next (evita fallos de pnpm si el workspace
+    // solo tiene overrides). En CI el job ya hizo `pnpm build` y arranca con pnpm.
+    command: process.env.CI ? 'pnpm start' : './node_modules/.bin/next build && ./node_modules/.bin/next start',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-TEST000000',
+    },
   },
 })
