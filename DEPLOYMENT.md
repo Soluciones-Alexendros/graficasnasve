@@ -85,13 +85,17 @@ Copiar `.env.example` → `.env.local` y rellenar (nunca subir `.env.local`):
 (tras CI verde, según la protección de rama). Un merge → un deployment de Production.
 
 **Smoke post-deploy** (`.github/workflows/deploy.yml`): tras CI/CD en verde sobre `main`,
-el job `smoke-prod` comprueba con `curl` (reintentos) que
-`https://ecommerce-graficasnasve.vercel.app` responde **200**. No despliega, no usa
-`VERCEL_TOKEN` / `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`. Si el HTTP falla, el job queda
-rojo (sin `exit 0` que enmascare).
+el job `smoke-prod` separa las capas. El check de CI y el artefacto `.next` no promocionan.
+La promoción es solo Git. El job lee el alias y exige que ese deployment sea `source=git`,
+esté `READY` y su `meta.githubCommitSha` sea el `head_sha` del `workflow_run`. Luego pide
+HTTP 200 a la URL de ese deployment y a
+`https://ecommerce-graficasnasve.vercel.app`. Usa `VERCEL_TOKEN`, `VERCEL_ORG_ID` y
+`VERCEL_PROJECT_ID` solo para esa lectura. Si faltan, el job sale 1. No llama a
+`vercel deploy` y no usa `exit 0`.
 
 > Antes coexistían dos deploys (Git + CLI). El CLI se retiró a propósito para dejar una
-> sola vía. Rollback: Instant Rollback de Vercel al deployment anterior (p. ej. `fc0cfce`).
+> sola vía. Rollback, mientras el alias no cambie: Instant Rollback de Vercel al deployment
+> `dpl_7FHxNXCVC82spic8HWEsqDHGsVGW` (SHA `dffb7faefe3b935fe86dbded035782509c4e8238`).
 
 ## 8. Pagos (futuro — Fase 5)
 

@@ -62,7 +62,7 @@ GitHub Actions (workflow **CI/CD**) ejecuta en cada push/PR los jobs canónicos:
 3. **build** — `pnpm build` (artefacto `.next`)
 4. **smoke** — Playwright/Chromium
 5. **Production** — integración Git de Vercel al mergear en `main`
-6. **smoke-prod** — `deploy.yml` comprueba HTTP 200 en la URL de Production (no despliega)
+6. **smoke-prod** — `deploy.yml` comprueba que el alias de Production es el SHA de Git (`source=git`) y que esa URL responde 200. No despliega.
 
 ## Contratos
 

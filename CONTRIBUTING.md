@@ -19,7 +19,7 @@ pnpm dev                     # http://localhost:3000
 
 ## Flujo de trabajo
 
-Rama `feat/*` / `fix/*` / `docs/*` / `chore/*` (agentes Cloud: `cursor/…`) → PR contra `main` → CI verde → merge. `main` está protegida; Production la despliega la integración Git de Vercel. `deploy.yml` solo comprueba HTTP 200 tras CI/CD en `main`.
+Rama `feat/*` / `fix/*` / `docs/*` / `chore/*` (agentes Cloud: `cursor/…`) → PR contra `main` → CI verde → merge. `main` está protegida; Production la despliega la integración Git de Vercel. `deploy.yml` no despliega: comprueba que el alias sea ese SHA (`source=git`) y que la URL de ese deployment responda 200. Un HTTP 200 del alias con otro SHA no basta.
 
 Los hooks `husky` (si están activos en local) corren lint-staged en pre-commit.
 

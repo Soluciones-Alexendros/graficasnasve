@@ -24,18 +24,123 @@ jobs:
       name: production
       url: https://ecommerce-graficasnasve.vercel.app
     steps:
-      - name: HTTP 200 en Production
+      - name: Revisar promoción Git y smoke del SHA
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          ALIAS_HOST: ecommerce-graficasnasve.vercel.app
         run: |
-          set -euo pipefail
-          URL='https://ecommerce-graficasnasve.vercel.app'
-          for i in 1 2 3 4 5 6; do
-            CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$URL" || echo '000')
-            echo "Intento $i → HTTP $CODE"
-            if [ "$CODE" = '200' ]; then
-              echo "✅ Production responde 200: $URL"
-              exit 0
-            fi
-            sleep $((i * 10))
-          done
-          echo "::error::Production no respondió 200 tras reintentos ($URL)"
-          exit 1
+          python3 << 'PY'
+          import json
+          import os
+          import sys
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          missing = [
+              name
+              for name in ("VERCEL_TOKEN", "VERCEL_ORG_ID", "VERCEL_PROJECT_ID", "EXPECTED_SHA")
+              if not os.environ.get(name)
+          ]
+          if missing:
+              print(
+                  "::error::Faltan "
+                  + ", ".join(missing)
+                  + ". El job no despliega y no enmascara la ausencia."
+              )
+              sys.exit(1)
+
+          token = os.environ["VERCEL_TOKEN"]
+          org = urllib.parse.quote(os.environ["VERCEL_ORG_ID"], safe="")
+          project = os.environ["VERCEL_PROJECT_ID"]
+          expected = os.environ["EXPECTED_SHA"]
+          alias_host = os.environ["ALIAS_HOST"]
+
+          def api_get(path):
+              req = urllib.request.Request(
+                  "https://api.vercel.com" + path,
+                  headers={"Authorization": "Bearer " + token},
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as res:
+                      return res.status, json.load(res)
+              except urllib.error.HTTPError as exc:
+                  raw = exc.read().decode("utf-8", "replace")
+                  message = ""
+                  try:
+                      message = json.loads(raw).get("error", {}).get("message", "")
+                  except json.JSONDecodeError:
+                      message = "respuesta no JSON"
+                  return exc.code, {"error": message}
+
+          def http_code(url):
+              req = urllib.request.Request(url, method="GET")
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as res:
+                      return res.status
+              except urllib.error.HTTPError as exc:
+                  return exc.code
+              except (urllib.error.URLError, TimeoutError):
+                  return 0
+
+          last = "sin lectura"
+          for attempt in range(1, 7):
+              alias_status, alias = api_get(f"/v4/aliases/{alias_host}?teamId={org}")
+              deployment_id = alias.get("deploymentId") or ""
+              if alias_status != 200 or not deployment_id:
+                  last = f"alias HTTP {alias_status}"
+                  print(f"Intento {attempt} → {last}")
+              else:
+                  dep_status, dep = api_get(f"/v13/deployments/{deployment_id}?teamId={org}")
+                  meta = dep.get("meta") or {}
+                  project_obj = dep.get("project") or {}
+                  sha = meta.get("githubCommitSha") or ""
+                  source = dep.get("source") or ""
+                  ready = dep.get("readyState") or ""
+                  target = dep.get("target") or ""
+                  project_id = dep.get("projectId") or project_obj.get("id") or ""
+                  host = dep.get("url") or ""
+                  last = (
+                      f"deployment={deployment_id} source={source} sha={sha} "
+                      f"ready={ready} target={target}"
+                  )
+                  promoted = (
+                      dep_status == 200
+                      and project_id == project
+                      and source == "git"
+                      and sha == expected
+                      and ready == "READY"
+                      and target == "production"
+                      and host
+                  )
+                  if promoted:
+                      dep_url = "https://" + host
+                      alias_url = "https://" + alias_host
+                      code_dep = http_code(dep_url)
+                      code_alias = http_code(alias_url)
+                      print(
+                          f"Intento {attempt} → {last} "
+                          f"http_deployment={code_dep} http_alias={code_alias}"
+                      )
+                      if code_dep == 200 and code_alias == 200:
+                          print(f"Promoción Git {sha} en {deployment_id}")
+                          sys.exit(0)
+                      last = f"{last} http_deployment={code_dep} http_alias={code_alias}"
+                  else:
+                      print(f"Intento {attempt} → {last}")
+              if attempt < 6:
+                  time.sleep(attempt * 15)
+
+          print(
+              "::error::La promoción Git no coincide con "
+              + expected
+              + " ("
+              + last
+              + "). No se redespliega."
+          )
+          sys.exit(1)
+          PY

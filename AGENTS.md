@@ -71,7 +71,7 @@ pnpm build && make smoke
 make validate
 ```
 
-CI principal (`.github/workflows/ci.yml`, nombre **CI/CD**): jobs `quality`, `test`, `build`, `smoke`. Production la publica la integración Git de Vercel. `deploy.yml` solo hace smoke HTTP 200 tras CI/CD en `main` (no despliega). No renombres el workflow **CI/CD**.
+CI principal (`.github/workflows/ci.yml`, nombre **CI/CD**): jobs `quality`, `test`, `build`, `smoke`. Production la publica la integración Git de Vercel. `deploy.yml` no despliega: tras CI/CD en `main` comprueba el SHA promovido (`source=git`) y el HTTP 200 de esa revisión. Si faltan los secretos de lectura, el job falla. No renombres el workflow **CI/CD**.
 
 ## Convenciones
 
