@@ -121,7 +121,7 @@ URL prod: `https://ecommerce-graficasnasve.vercel.app` → HTTP 200 (verificado 
 | Monitor de errores (Sentry o equiv.)         | ⬜ deuda técnica                                 |
 | Analítica de producto (GA4)                  | 🟡 código #26 · Measurement ID pendiente         |
 | Uptime/alertas                               | ⬜ recomendable                                  |
-| Runbook de despliegue y rollback documentado | ✅ (`DEPLOYMENT.md`; Instant Rollback `fc0cfce`) |
+| Runbook de despliegue y rollback documentado | ✅ (`DEPLOYMENT.md`; Instant Rollback `dpl_7FHxNXCVC82spic8HWEsqDHGsVGW`) |
 | Una sola vía Production por merge            | 🟡 código #21 · verificar tras merge             |
 
 ## 11. Go-live final
