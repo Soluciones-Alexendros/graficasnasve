@@ -16,7 +16,7 @@ import { Campo } from '@/components/ui/Campo'
 import { Boton } from '@/components/ui/Boton'
 
 const MAX_ARCHIVO_BYTES = 50 * 1024 * 1024 // 50 MB
-const TIPOS_ARCHIVO = '.pdf,.ai,.eps,.zip'
+const TIPOS_ARCHIVO = '.pdf,.ai,.eps,.zip,.jpg,.jpeg,.png'
 
 type EstadoEnvio = 'idle' | 'loading' | 'success' | 'error'
 
@@ -49,10 +49,10 @@ export function FormularioPresupuesto({ productoInicial, detallesInicial }: Prop
     if (archivo.size > MAX_ARCHIVO_BYTES) {
       return `El archivo supera el límite de 50 MB (tamaño actual: ${(archivo.size / 1024 / 1024).toFixed(1)} MB)`
     }
-    const extensionesPermitidas = ['.pdf', '.ai', '.eps', '.zip']
+    const extensionesPermitidas = ['.pdf', '.ai', '.eps', '.zip', '.jpg', '.jpeg', '.png']
     const extension = '.' + archivo.name.split('.').pop()?.toLowerCase()
     if (!extensionesPermitidas.includes(extension)) {
-      return 'Tipo de archivo no permitido. Acepta: PDF, AI, EPS, ZIP'
+      return 'Tipo de archivo no permitido. Acepta: PDF, AI, EPS, ZIP, JPG, PNG'
     }
     return ''
   }

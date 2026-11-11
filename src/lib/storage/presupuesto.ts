@@ -6,19 +6,11 @@
 import { randomUUID } from 'crypto'
 import path from 'path'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { MAX_ARCHIVO_BYTES, validarPreflightArchivo } from '@/lib/preflight/archivo'
 
-export const MAX_ARCHIVO_BYTES = 50 * 1024 * 1024 // 50 MB
+export { MAX_ARCHIVO_BYTES }
 
-export const ALLOWED_EXTENSIONS = ['pdf', 'ai', 'eps', 'zip']
-
-export const ALLOWED_MIME_TYPES = [
-  'application/pdf',
-  'application/postscript',
-  'application/illustrator',
-  'image/x-eps',
-  'application/zip',
-  'application/x-zip-compressed',
-]
+export const ALLOWED_EXTENSIONS = ['pdf', 'ai', 'eps', 'zip', 'jpg', 'jpeg', 'png']
 
 /**
  * Sanea el nombre de archivo original:
@@ -36,18 +28,15 @@ export function sanitizeFileName(name: string): string {
     .toLowerCase()
 }
 
+/**
+ * Validación ligera por metadatos del File (cliente / capa previa).
+ * La fuente de verdad es `validarPreflightArchivo` sobre los bytes.
+ */
 export function validateFile(archivo: File): { ok: boolean; error?: string } {
   const safeName = sanitizeFileName(archivo.name)
   const ext = safeName.split('.').pop() ?? ''
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
     return { ok: false, error: 'Extensión de archivo no permitida' }
-  }
-  if (
-    archivo.type &&
-    !ALLOWED_MIME_TYPES.includes(archivo.type) &&
-    !(archivo.type === 'application/octet-stream' && ['ai', 'eps'].includes(ext))
-  ) {
-    return { ok: false, error: 'Tipo de archivo no permitido' }
   }
   return { ok: true }
 }
@@ -59,16 +48,15 @@ export interface ResultadoSubida {
 
 /**
  * Sube un archivo al bucket privado `arte-files` y devuelve una signed URL
- * de 1 h. No bloquea el flujo si falla la subida: en ese caso devuelve nulls.
+ * de 1 h. Rechaza con Error si el preflight falla (no se sube nada).
+ * Si falla Storage tras validar, devuelve nulls sin romper el presupuesto.
  */
 export async function subirArchivoPresupuesto(archivo: File): Promise<ResultadoSubida> {
-  if (archivo.size > MAX_ARCHIVO_BYTES) {
-    throw new Error('El archivo supera el límite de 50 MB')
-  }
-
-  const validacion = validateFile(archivo)
-  if (!validacion.ok) {
-    throw new Error(validacion.error)
+  const buffer = await archivo.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+  const preflight = validarPreflightArchivo(bytes, archivo.name)
+  if (!preflight.ok) {
+    throw new Error(preflight.error ?? 'Archivo no válido')
   }
 
   const supabaseAdmin = createAdminClient()
@@ -79,10 +67,9 @@ export async function subirArchivoPresupuesto(archivo: File): Promise<ResultadoS
   const uuid = randomUUID()
   const safeName = sanitizeFileName(archivo.name)
   const storagePath = `presupuestos/${uuid}/${safeName}`
-  const buffer = await archivo.arrayBuffer()
 
   const { error: uploadError } = await supabaseAdmin.storage.from('arte-files').upload(storagePath, buffer, {
-    contentType: archivo.type || 'application/octet-stream',
+    contentType: preflight.mime ?? (archivo.type || 'application/octet-stream'),
     upsert: false,
   })
 

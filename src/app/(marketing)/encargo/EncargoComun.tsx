@@ -33,14 +33,6 @@ export function Opcion({
   )
 }
 
-export const PREFLIGHT = [
-  { estado: 'ok', titulo: 'Formato y sangre', detalle: '210×297 mm + 3 mm de sangre detectados' },
-  { estado: 'ok', titulo: 'Resolución', detalle: 'Imágenes a 312 ppp · óptimo para offset' },
-  { estado: 'aviso', titulo: 'Modo de color', detalle: 'Archivo en RGB → lo convertimos a CMYK ISO Coated v2' },
-  { estado: 'ok', titulo: 'Tipografías', detalle: 'Incrustadas o trazadas · correcto' },
-  { estado: 'info', titulo: 'Marcas de corte', detalle: 'No incluidas · las añadimos nosotros' },
-] as const
-
 export function IconoEstado({ estado }: { estado: 'ok' | 'aviso' | 'info' }) {
   if (estado === 'ok') return <Check size={16} className="text-cyan shrink-0 mt-0.5" />
   if (estado === 'aviso') return <Diamond size={14} className="text-ambar fill-ambar shrink-0 mt-1" />
