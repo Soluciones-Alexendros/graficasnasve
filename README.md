@@ -95,6 +95,14 @@ pnpm dev
 
 Ver checklist completa en [`CHECKLIST-PROD.md`](./CHECKLIST-PROD.md).
 
+## Licencia
+
+Código **propietario** del cliente (Gráficas NASVE, S.L.), no una licencia open source SPDX.
+
+- `package.json` declara `"license": "UNLICENSED"` y `"private": true`.
+- El aviso de cesión y restricciones está en [`LICENSE`](./LICENSE).
+- GitHub puede mostrar la licencia como `NOASSERTION` / Other: es esperado (no hay SPDX reconocible a propósito).
+
 [ci-link]: https://github.com/Soluciones-Alexendros/ecommerce-graficasnasve/actions
 [vercel-link]: https://ecommerce-graficasnasve.vercel.app
 [website-url]: https://ecommerce-graficasnasve.vercel.app
