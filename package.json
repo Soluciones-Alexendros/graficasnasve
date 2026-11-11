@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "packageManager": "pnpm@11.5.2",
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev",
